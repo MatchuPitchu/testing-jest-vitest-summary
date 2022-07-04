@@ -4,17 +4,20 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "vitest --run --reporter verbose",
-    "test:watch": "vitest",
-    "start": "http-server -c-1"
+    "dev": "vite",
+    "test": "vitest --watch",
+    "coverage": "vitest run --coverage",
+    "build": "tsc && vite build"
   },
   "keywords": [],
   "author": "Maximilian Schwarzmüller",
   "license": "ISC",
+  "dependencies": {
+    "typescript": "^4.7.2",
+    "vite": "^2.9.9",
+    "vitest": "^0.12.9"
+  },
   "devDependencies": {
-    "http-server": "^14.1.0",
-    "install": "^0.13.0",
-    "npm": "^8.6.0",
-    "vitest": "^0.9.0"
+    "install": "^0.13.0"
   }
 }

@@ -1,3 +1,4 @@
 # Project Start
 
-- start project with `npm start`
+- basic `vite`/`vitest` setup to be ready for a Typescript project.
+- start project with `npm run dev`
