@@ -1,23 +1,18 @@
 {
   "name": "basic-testing-frontend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "private": true,
+  "version": "0.0.0",
+  "main": "main.js",
   "scripts": {
     "dev": "vite",
     "test": "vitest --watch",
     "coverage": "vitest run --coverage",
-    "build": "tsc && vite build"
-  },
-  "keywords": [],
-  "author": "Maximilian Schwarzmüller",
-  "license": "ISC",
-  "dependencies": {
-    "typescript": "^4.7.2",
-    "vite": "^2.9.9",
-    "vitest": "^0.12.9"
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "install": "^0.13.0"
+    "typescript": "^4.5.4",
+    "vite": "^2.9.9",
+    "vitest": "^0.12.9"
   }
 }

@@ -1,6 +1,7 @@
-import { validateStringNotEmpty, validateNumber } from './src/util/validation';
-import { add } from './src/math';
-import { transformStringToNumber } from './src/util/numbers';
+import { validateStringNotEmpty, validateNumber } from './util/validation';
+import { add } from './math';
+import { transformStringToNumber } from './util/numbers';
+import './style.css';
 
 const form = document.querySelector('form') as HTMLFormElement;
 const output = document.getElementById('result') as HTMLElement;
@@ -8,7 +9,11 @@ const output = document.getElementById('result') as HTMLElement;
 const formSubmitHandler = (event: SubmitEvent) => {
   event.preventDefault();
 
-  const numberInputs = [event.currentTarget?.[0].value, event.currentTarget?.[1].value];
+  const form = new FormData(event.currentTarget as HTMLFormElement);
+
+  const num1 = form.get('num1');
+  const num2 = form.get('num2');
+  const numberInputs = [num1, num2];
 
   let result = '';
 
@@ -23,7 +28,7 @@ const formSubmitHandler = (event: SubmitEvent) => {
       }
     }
     result = add(...numbers).toString();
-  } catch (error) {
+  } catch (error: any) {
     result = error.message;
   }
 

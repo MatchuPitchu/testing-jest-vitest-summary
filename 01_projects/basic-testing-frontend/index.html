@@ -1,23 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Testing Basics</title>
-    <style>
-      html {
-        font-family: sans-serif;
-      }
-
-      body {
-        margin: 2rem;
-      }
-
-      div,
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-      }
-    </style>
-    <script type="module" defer src="app.ts"></script>
   </head>
   <body>
     <form action="/calculate" method="POST">
@@ -33,4 +19,5 @@
     </form>
     <div id="result"></div>
   </body>
+  <script type="module" src="/src/main.ts"></script>
 </html>

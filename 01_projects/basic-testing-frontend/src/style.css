@@ -1,0 +1,13 @@
+html {
+  font-family: sans-serif;
+}
+
+body {
+  margin: 2rem;
+}
+
+div,
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
