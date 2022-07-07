@@ -2,7 +2,7 @@
 
 > <https://www.udemy.com/course/javascript-unit-testing-the-practical-guide/learn/lecture/31877676?start=0#overview>
 
-- for basic information about `Testing` and `Testing in React` look at <https://github.com/MatchuPitchu/react-course-summary>
+- for more detailed information about `Testing` in general and `Testing in React` look at <https://github.com/MatchuPitchu/react-course-summary>
 
 ## Setup & Testing Environment
 
@@ -31,3 +31,5 @@
     "test" : "vitest --globals"
   }
   ```
+
+## Writing Good Tests
