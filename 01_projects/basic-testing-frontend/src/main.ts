@@ -21,9 +21,9 @@ const formSubmitHandler = (event: SubmitEvent) => {
     const numbers: number[] = [];
     for (const numberInput of numberInputs) {
       if (numberInput) {
-        validateStringNotEmpty(numberInput);
+        validateStringNotEmpty(numberInput); // would not be needed normally in my implementation
         const number = transformStringToNumber(numberInput);
-        validateNumber(number);
+        validateNumber(number); // would not be needed with TypeScript
         numbers.push(number);
       }
     }
