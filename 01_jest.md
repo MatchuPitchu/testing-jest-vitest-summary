@@ -33,3 +33,21 @@
   ```
 
 ## Writing Good Tests
+
+- Only test your code: do NOT test what you can NOT change -> do NOT test third-pary code (Browser APIs, native npm packages)
+  - Examples:
+    - `fetch()` API: don't test if it works as intended
+    - don't test your server-side code implicitly via your client-side code -> write separate tests for your backend code instead
+    - DO test your client-side reaction to different responses & errors (UI, missing data, errors to display)
+- follow `AAA`: `Arange`, `Act`, `Assert`
+- one test - only test one `feature` or `behavior` per test
+- focus on the essence of a test when arranging: keep it simple and test as little as needed (e.g. `add function` that sums up numbers need only to be tested with 2 numbers)
+- keep number of assertions (-> expectations) low
+
+## Code Coverage
+
+- code coverage means, that you want to write tests for the majority of your code (both code files and line of code)
+- Vitest supports Native code coverage via `c8`: `npm i --save-dev c8` <https://vitest.dev/guide/features.html#coverage>
+  - use script `vitest run --coverage` to measure code coverage:
+- the goal is NOT necessarily 100% coverage. There always can be some code that doesn't need any tests (e.g., because it merely calls other functions that are tested already).
+- in addition, achieving (close to) full code coverage also isn't any guarantee that you wrote good tests. You could cover 100% of your code with meaningless tests after all. Or you could missing important tests (that should test important behaviors)
