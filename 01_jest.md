@@ -51,3 +51,76 @@
   - use script `vitest run --coverage` to measure code coverage:
 - the goal is NOT necessarily 100% coverage. There always can be some code that doesn't need any tests (e.g., because it merely calls other functions that are tested already).
 - in addition, achieving (close to) full code coverage also isn't any guarantee that you wrote good tests. You could cover 100% of your code with meaningless tests after all. Or you could missing important tests (that should test important behaviors)
+
+## Advanced Testing Concepts
+
+- `expect(...).toBe(primitiveValue)`: checks equality -> for primitive values
+- `expect(...).toEqual(nonPrimitiveValue)`: does a deep comparison, if you have same values with same shape -> for non-primitive values
+
+### Testing Asynchronous Code
+
+```JavaScript
+// Code async-example.js
+import jwt from 'jsonwebtoken';
+
+export const generateToken = (userEmail, doneFn) => {
+  jwt.sign({ email: userEmail }, 'secret123', doneFn);
+};
+
+export const generateTokenPromise = (userEmail) => {
+  const promise = new Promise((resolve, reject) => {
+    jwt.sign({ email: userEmail }, 'secret123', (error, token) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(token);
+      }
+    });
+  });
+
+  return promise;
+};
+
+// Tests async-example.spec.js
+import { expect, it } from 'vitest';
+import { generateToken, generateTokenPromise } from './async-example';
+
+// Testing asynchronous generateToken with callback function (-> without Promise)
+it('should generate a token value (test uses "done" parameter to mark end of test)', (done) => {
+  const testUserMail = 'test@test.de';
+
+  // vitest does NOT wait until callback fn is finished, so vitest finds NO expect statement and test passes always
+  // use extra available paramenter 'done' and call it at stop point of this test
+  generateToken(testUserMail, (err, token) => {
+    try {
+      expect(token).toBeDefined(); // passes
+      // expect(token).toBe(2); // would fails
+      done(); // finish test if expect was passed
+    } catch (err) {
+      done(err); // finish test with done and error
+    }
+  });
+});
+
+// Testing asynchronous generateTokenPromise with handling Promise in expect()
+it('should generate a token value (test handles Promise in expect())', () => {
+  const testUserMail = 'test@test.de';
+
+  // expect can handle Promises, you can chain 'rejects' or 'resolves'
+  // you should return the promise assertion
+  // this guarantees that Vitest/Jest wait for the promise to be resolved
+  // you don't need to return when using async/await (since a fn annotated with async returns a promise implicitly)
+  return expect(generateTokenPromise(testUserMail)).resolves.toBeTypeOf('string');
+});
+
+// Testing asynchronous generateTokenPromise with Promise with async/await
+it('should generate a token value (test uses async/await)', async () => {
+  const testUserMail = 'test@test.de';
+  const token = await generateTokenPromise(testUserMail);
+  expect(token).toBeTypeOf('string');
+});
+```
+
+### Using Testing Hooks
+
+- hooks are functions that are automatically executed by the test runner at certain points of time
