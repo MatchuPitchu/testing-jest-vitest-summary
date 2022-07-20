@@ -190,28 +190,114 @@ describe('User class', () => {
 
 - dealing with side effects and external dependencies
 
-- `Spies` are wrappers around functions or empty replacements for functions in order to track if and how a function was called
+#### Spies
 
-  - Example: create a `spy` to check if a function was called
-  - `vi.fn()` (or for Jest `jest.fn()`) creates an empty fn that keeps track of any calls to that fn and of all arguments of these calls
+- `Spies` are wrappers around functions or empty replacements for functions in order to track if and how a function was called
+- Example: create a `spy` to check if a function was called
+- `vi.fn()` (or for Jest `jest.fn()`) creates an empty fn that keeps track of any calls to that fn and of all arguments of these calls
+
+```JavaScript
+// File: data.js
+import { writeData } from './util/io.js';
+
+export const generateReportData = (logFn) => {
+  const data = 'Some dummy data for this demo app';
+  if (logFn) logFn(data);
+  return data;
+};
+
+// Test: data.spec.js
+import { describe, it, expect, vi } from 'vitest';
+import { generateReportData } from './data';
+
+describe('generateReportData()', () => {
+  it('should execute logFn if provided', () => {
+    const logger = vi.fn();
+    generateReportData(logger);
+
+    expect(logger).toHaveBeenCalled();
+  });
+});
+```
+
+#### Mocks
+
+- `Mocks` are a replacement for an API that may provide some test-specific behavior instead
+
+- Example 1: Testing with external dependencies/API
+
+  - OPTION 1 (NOT recommended): write tests that save real data in e.g. a database
+
+    - problem: test will have side effects, it writes data to the hard drive; imagine you would delete real data in tests
+    - in general this test behavior is NOT needed since you want to test your code and not that a built in function (like `fs.writeFile()`) provided by a module/an API is working correctly
+
+  - OPTION 2: Mocking modules
 
   ```JavaScript
-  // File: data.js
-  import { writeData } from './util/io.js';
+  // File: io.js
+  import path from 'path';
+  import { promises as fs } from 'fs';
 
-  export const generateReportData = (logFn) => {
-    const data = 'Some dummy data for this demo app';
-    if (logFn) logFn(data);
-    return data;
+  export const writeData = (data, filename) => {
+    const storagePath = path.join(process.cwd(), 'data', filename);
+    return fs.writeFile(storagePath, data);
   };
 
-  // Test: data.spec.js
+  // Test: io.spec.js
+  import { describe, it, expect, vi } from 'vitest';
+  import { writeData } from './io';
+  import { promises as fs } from 'fs'; // need to import since you use it in test
+
+  // OPTION 2: Mocking module: pass in the name or path of a module (also own modules) that should be mocked
+  // vitest replaces all found functions in this module with empty spy functions
+  // Notice: mock is hoisted, that means it's set a the top of the file before the import statement, to be sure that module is really mocked
+  vi.mock('fs');
+  // Example: Mocking 'path' module with an own implementation
+  vi.mock('path', () => {
+    // by default vitest replaces all functions with empty spy functions;
+    // here you return your own implementation for needed functions
+    return {
+      // Notice: 'default' property is needed since it's a default import (-> import path from 'path'), otherwise 'default' NOT needed
+      default: {
+        join: (...args) => args.at(-1), // only return last element -> it's the filename
+      },
+    };
+  });
+
+  describe('writeData()', () => {
+    it('should execute the writeFile method', () => {
+      // OPTION 2: Mocking modules
+      const testData = 'test';
+      const testFilename = 'text.txt';
+
+      writeData(testData, testFilename);
+      // call automatically created spy fn in module fs.writeFile and check if it was called
+      expect(fs.writeFile).toHaveBeenCalled();
+      // expect(fs.writeFile).toBeCalledTimes(1);
+      expect(fs.writeFile).toBeCalledWith(testFilename, testData); // 'testFilename' because of mocking above
+    });
+  });
+  ```
+
+  - OPTION 3: Mocking functions with a specific implementation in specific places
+
+    - this option is without a global implementation like OPTION 2 or in a `__mocks__` folder below
+    - Documentation for implementation cases for mock functions: <https://jestjs.io/docs/mock-function-api>
+    - `mockFn.mockImplementation(fn)`: Accepts a function that should be used as the implementation of the mock
+    - `mockFn.mockImplementationOnce(fn)`: Accepts a function that will be used as an implementation of the mock for one call to the mocked function
+
+  ```JavaScript
   import { describe, it, expect, vi } from 'vitest';
   import { generateReportData } from './data';
 
   describe('generateReportData()', () => {
     it('should execute logFn if provided', () => {
       const logger = vi.fn();
+      // a)
+      logger.mockImplementation(() => console.log('specific mock implementation'));
+      // b)
+      logger.mockImplementationOnce(() => console.log('specific mock implementation for one call'));
+
       generateReportData(logger);
 
       expect(logger).toHaveBeenCalled();
@@ -219,87 +305,64 @@ describe('User class', () => {
   });
   ```
 
-- `Mocks` are a replacement for an API that may provide some test-specific behavior instead
+- Example 2: Mocking globally available functions
+  - when you have e.g. HTTP requests triggerd by `fetch()` which is a globally available function, not an imported module, you can NOT use `vi.fn()` to replace it
+  - `vi.stubGlobal()` allows to replace globally available functions:
 
-  - Example: Testing with external dependencies/API
+```TypeScript
+// File: http.ts
+import { HttpError } from './errors.js';
 
-    - OPTION 1: NOT recommended; you can write tests that are saving real data in e.g. a database
-      - problem: test will have side effects, it writes data to the hard drive; imagine you would delete real data in tests
-      - in general this test behavior is NOT needed since you want to test your code and not that a built in function (like `fs.writeFile()`) provided by a module/an API is working correctly
-    - OPTION 2: mocking modules
+export const sendDataRequest = async (data: any) => {
+  const options: RequestInit = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  };
+  const response = await fetch('https://dummy-site.dev/posts', options);
+  const responseData = await response.json();
 
-    ```JavaScript
-    // File: io.js
-    import path from 'path';
-    import { promises as fs } from 'fs';
+  if (!response.ok) {
+    throw new HttpError(response.status, 'Sending the request failed.', responseData);
+  }
+  return responseData;
+};
 
-    export const writeData = (data, filename) => {
-      const storagePath = path.join(process.cwd(), 'data', filename);
-      return fs.writeFile(storagePath, data);
-    };
+// Test: http.spec.ts
+import { describe, expect, it, vi } from 'vitest';
+import { sendDataRequest } from './http';
 
-    // Test: io.spec.js
-    import { describe, it, expect, vi } from 'vitest';
-    import { writeData } from './io';
-    import { promises as fs } from 'fs'; // need to import since you use it in test
+describe('sendDataRequest()', () => {
+  // a) create empty spy to replace fetch() and add your own implementation of fetch() for testing purposes
+  // b) add testFetch mock as second argument to stubGlobal()
+  const testResponseData = { testKey: 'testData' };
 
-    // OPTION 2: Mocking module: pass in the name or path of a module (also own modules) that should be mocked
-    // vitest replaces all found functions in this module with empty spy functions
-    // Notice: mock is hoisted, that means it's set a the top of the file before the import statement, to be sure that module is really mocked
-    vi.mock('fs');
-    // Example: Mocking 'path' module with an own implementation
-    vi.mock('path', () => {
-      // by default vitest replaces all functions with empty spy functions;
-      // here you return your own implementation for needed functions
-      return {
-        // Notice: 'default' property is needed since it's a default import (-> import path from 'path'), otherwise 'default' NOT needed
-        default: {
-          join: (...args) => args.at(-1), // only return last element -> it's the filename
+  const testFetch = vi.fn((url, options) => {
+    return new Promise((resolve, reject) => {
+      const testResponse = {
+        ok: true,
+        json: () => {
+          return new Promise((resolve, reject) => {
+            resolve(testResponseData);
+          });
         },
       };
+      resolve(testResponse);
     });
+  });
+  vi.stubGlobal('fetch', testFetch);
 
-    describe('writeData()', () => {
-      it('should execute the writeFile method', () => {
-        // OPTION 2: Mocking modules
-        const testData = 'test';
-        const testFilename = 'text.txt';
+  it('should return any available response data ', async () => {
+    const testData = { key: 'test' };
 
-        writeData(testData, testFilename);
-        // call automatically created spy fn in module fs.writeFile and check if it was called
-        expect(fs.writeFile).toHaveBeenCalled();
-        // expect(fs.writeFile).toBeCalledTimes(1);
-        expect(fs.writeFile).toBeCalledWith(testFilename, testData); // 'testFilename' because of mocking above
-      });
-    });
-    ```
+    const responseData = await sendDataRequest(testData);
 
-    - OPTION 3: mocking functions with a specific implementation in specific places (without a global implementation like in OPTION 1 or in `__mocks__` folder below)
-
-      - Documentation for implementation cases for mock functions: <https://jestjs.io/docs/mock-function-api>
-
-      - `mockFn.mockImplementation(fn)`: Accepts a function that should be used as the implementation of the mock
-
-      - `mockFn.mockImplementationOnce(fn)`: Accepts a function that will be used as an implementation of the mock for one call to the mocked function
-
-    ```JavaScript
-    import { describe, it, expect, vi } from 'vitest';
-    import { generateReportData } from './data';
-
-    describe('generateReportData()', () => {
-      it('should execute logFn if provided', () => {
-        const logger = vi.fn();
-        // a)
-        logger.mockImplementation(() => console.log('specific mock implementation'));
-        // b)
-        logger.mockImplementationOnce(() => console.log('specific mock implementation for one call'));
-
-        generateReportData(logger);
-
-        expect(logger).toHaveBeenCalled();
-      });
-    });
-    ```
+    expect(responseData).toEqual(testResponseData);
+  });
+});
+```
 
 #### Managing Custom Mook Implementation with own folder
 
