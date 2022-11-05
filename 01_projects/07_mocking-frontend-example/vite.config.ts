@@ -10,5 +10,6 @@ export default defineConfig({
       exclude: ['**/*.spec.*', '**/index.ts'],
       reporter: 'text',
     },
+    silent: false,
   },
 });

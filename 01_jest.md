@@ -361,8 +361,12 @@ describe('sendDataRequest()', () => {
   // b) add testFetch mock as second argument to stubGlobal()
   const testResponseData = { testKey: 'testData' };
 
-  const testFetch = vi.fn((url, options) => {
+  const testFetch = vi.fn((url: string, options: RequestInit) => {
     return new Promise((resolve, reject) => {
+      if (typeof options.body !== 'string') {
+        return reject('Body was not converted into JSON string');
+      }
+
       const testResponse = {
         ok: true,
         json: () => {
@@ -382,6 +386,20 @@ describe('sendDataRequest()', () => {
     const responseData = await sendDataRequest(testData);
 
     expect(responseData).toEqual(testResponseData);
+  });
+
+  it('should convert the provided data to JSON before sending the request', async () => {
+    const testData = { key: 'test' };
+
+    let errorMessage;
+
+    try {
+      await sendDataRequest(testData);
+    } catch (error) {
+      errorMessage = error;
+    }
+
+    expect(errorMessage).not.toBe('Body was not converted into JSON string');
   });
 });
 ```

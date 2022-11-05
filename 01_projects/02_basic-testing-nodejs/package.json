@@ -13,6 +13,6 @@
     "express": "^4.17.3"
   },
   "devDependencies": {
-    "vitest": "^0.9.0"
+    "vitest": "^0.24.5"
   }
 }
