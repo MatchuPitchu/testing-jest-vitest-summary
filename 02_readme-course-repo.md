@@ -1,6 +1,6 @@
 # JavaScript Unit Testing - The Practical Guide Code & Course Materials
 
-Link to Course Repository: <https://github.com/academind/js-testing-practical-guide-code>
+> Link to Course Repository: <https://github.com/academind/js-testing-practical-guide-code>
 
 This repository contains code snapshots and other attachments (e.g., slides) for our [JavaScript Unit Testing - The Practical Guide](https://acad.link/testing) course.
 
