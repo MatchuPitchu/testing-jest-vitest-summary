@@ -428,3 +428,40 @@ describe('sendDataRequest()', () => {
     }),
   };
   ```
+
+## Testing the Frontend with the DOM
+
+- `Vitest`/`Jest` supports the DOM out of the box
+- use different testing environments:
+
+  - `NodeJS` (default):
+    - `NodeJS` APIs and modules are available
+    - can NOT interact with browser and browser APIs
+  - `Happy-DOM` (-> only in `Vitest`) or `JSDOM`:
+
+    - virtual DOM environment that emulates the browser
+    - DOM and browser APIs are available
+    - ideal for testing frontend code and projects
+    - activate: <https://vitest.dev/config/>
+      - [1] add `--environment=happy-dom` to your test script in `package.json` OR
+      - [2] add `environment: 'happy-dom'` in `vite.config.ts` test object OR
+      - [3] add `// @vitest-environment happy-dom` in specifc test file to activate only there
+    - configure `Happy-DOM` environment in a `setup.ts` file in a folder of your choice (e.g. `test-setup`)
+
+      - add `setupFiles: ['./test-setup/setup.ts']` to `defineConfig` obj `test` property in `vite.config.ts`
+      - add `Happy-DOM` configuration in `setup.ts`
+
+      ```TypeScript
+      import { vi } from 'vitest';
+      import fs from 'fs';
+      import path from 'path';
+      import { Window } from 'happy-dom';
+
+      const htmlDocPath = path.join(process.cwd(), 'index.html');
+      const htmlDocumentContent = fs.readFileSync(htmlDocPath).toString();
+
+      const window = new Window();
+      const document = window.document;
+      document.write(htmlDocumentContent);
+      vi.stubGlobal('document', document);
+      ```
