@@ -388,9 +388,9 @@ describe('sendDataRequest()', () => {
 
 #### Managing Custom Mook Implementation with own folder
 
-- you can add a folder `__mocks__` in your project
+- you can add a folder `__mocks__` in your project and a file with module that you want to mock (e.g. `fs.js`)
 
-  - Vitest/Jest searchs for folder whenever you call mocks (e.g. `vi.mock('fs')`) AND this implementation is used in your test
+  - Vitest/Jest searchs in this folder whenever you call mocks (e.g. `vi.mock('fs')`) AND this implementation is used in your test
   - add files with names of modules that you want to mock (e.g. `fs.js`)
 
   ```JavaScript
