@@ -11,7 +11,6 @@ export default defineConfig({
       reporter: 'text',
     },
     silent: false,
-    environment: 'happy-dom',
-    setupFiles: ['./test-setup/setup.ts'],
+    setupFiles: ['./tests/setup.ts'],
   },
 });

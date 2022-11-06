@@ -1,5 +1,5 @@
 export const showError = (message: string) => {
-  const errorContainerElement = document.getElementById('errors')!;
+  const errorContainerElement = document.getElementById('error')!;
   const errorMessageElement = document.createElement('p');
   errorMessageElement.textContent = message;
   errorContainerElement.innerHTML = '';

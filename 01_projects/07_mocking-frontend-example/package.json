@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@testing-library/dom": "^8.19.0",
+    "@testing-library/jest-dom": "^5.16.5",
     "c8": "^7.11.3",
     "happy-dom": "^7.6.6",
     "typescript": "^4.5.4",

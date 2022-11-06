@@ -15,9 +15,14 @@
   - displays results
 
 - `Assertion Library`: e.g. `Jest`, `Vitest`, `Chai`
+
   - used to define expected outcomes
   - checks whether expectations are met
   - supports all kinds of expectations and modes (`sync` / `async`)
+
+- `Testing Library`:
+  - simple and complete testing utilities that encourage good testing practices
+  - helps to test UI components in a user-centric way
 
 ### Jest & Vitest
 
@@ -431,6 +436,8 @@ describe('sendDataRequest()', () => {
 
 ## Testing the Frontend with the DOM
 
+### OPTION 1: Integrate Happy-DOM
+
 - `Vitest`/`Jest` supports the DOM out of the box
 - use different testing environments:
 
@@ -448,20 +455,52 @@ describe('sendDataRequest()', () => {
       - [3] add `// @vitest-environment happy-dom` in specifc test file to activate only there
     - configure `Happy-DOM` environment in a `setup.ts` file in a folder of your choice (e.g. `test-setup`)
 
-      - add `setupFiles: ['./test-setup/setup.ts']` to `defineConfig` obj `test` property in `vite.config.ts`
-      - add `Happy-DOM` configuration in `setup.ts`
+      - add `setupFiles: ['./test-setup/setup.ts']` to `defineConfig` object `test` property in `vite.config.ts`
+      - add `Happy-DOM` configuration in `setup.ts`: here you are getting the content of an HTML file, creating a new `document` object with this content and setting it to the globally available `document` object in the tests
 
       ```TypeScript
-      import { vi } from 'vitest';
+      // setup.ts
+      import { beforeEach, vi } from 'vitest';
       import fs from 'fs';
       import path from 'path';
       import { Window } from 'happy-dom';
 
-      const htmlDocPath = path.join(process.cwd(), 'index.html');
-      const htmlDocumentContent = fs.readFileSync(htmlDocPath).toString();
+      export const configureVirtualDom = () => {
+        const htmlDocumentPath = path.join(process.cwd(), 'index.html');
+        const htmlDocumentContent = fs.readFileSync(htmlDocumentPath, { encoding: 'utf8' });
 
-      const window = new Window();
-      const document = window.document;
-      document.write(htmlDocumentContent);
-      vi.stubGlobal('document', document);
+        const window = new Window();
+        const document = window.document;
+        vi.stubGlobal('document', document);
+
+        beforeEach(() => {
+          document.open();
+          document.write(htmlDocumentContent);
+          document.close();
+        });
+      };
+
+      // test file
+      // @vitest-environment happy-dom
+      import { configureVirtualDom } from '../../test-setup/setup';
+
+      describe('...', () => {
+        configureVirtualDom();
+
+        // ...
+      });
       ```
+
+### OPTION 2: Integrate Testing Library
+
+> DOM Testing Library: <https://testing-library.com/docs/dom-testing-library/install>
+> Jest-DOM Testing Library: <https://testing-library.com/docs/ecosystem-jest-dom/>
+
+```TypeScript
+// setup.ts
+// https://markus.oberlehner.net/blog/using-testing-library-jest-dom-with-vitest/
+import matchers from '@testing-library/jest-dom/matchers';
+import { expect } from 'vitest';
+
+expect.extend(matchers);
+```
